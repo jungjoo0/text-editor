@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>페이블리 사진에 텍스트 추가</title>
+  
+  <!-- Open Graph 메타 태그 추가 -->
+  <meta property="og:title" content="페이블리 사진에 텍스트 추가">
+  <meta property="og:description" content="사진에 원하는 텍스트를 추가해보세요">
+  <meta property="og:image" content="https://github.com/fablely/text-editor-web/blob/main/Img/MainImg.jpg?raw=true">
+  <meta property="og:url" content="https://github.com/fablely/text-editor-web/blob/main/Img/MainImg.jpg?raw=true">
+  <meta property="og:type" content="website">
+  
+  <!-- 카카오톡 전용 메타태그 -->
+  <meta property="al:ios:url" content="https://github.com/fablely/text-editor-web/blob/main/Img/MainImg.jpg?raw=true">
+  <meta property="al:android:url" content="https://github.com/fablely/text-editor-web/blob/main/Img/MainImg.jpg?raw=true">
+  <meta property="al:web:url" content="https://github.com/fablely/text-editor-web/blob/main/Img/MainImg.jpg?raw=true">
+  <meta property="al:ios:app_name" content="페이블리 사진에 텍스트 추가">
+  <meta property="al:android:app_name" content="페이블리 사진에 텍스트 추가">
+  <meta property="al:web:should_fallback" content="true">
+  
+  <!-- 카카오톡 공유 이미지 추가 설정 -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="페이블리 사진에 텍스트 추가">
+  <meta name="twitter:description" content="사진에 원하는 텍스트를 추가해보세요">
+  <meta name="twitter:image" content="https://github.com/fablely/text-editor-web/blob/main/Img/MainImg.jpg?raw=true">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 모바일 폰트 피커 모달 -->
+  <div id="fontPickerModal" class="font-picker-modal hidden">
+    <div class="picker-header">
+      <button id="cancelFontPicker" class="picker-button">취소</button>
+      <span>폰트 선택</span>
+      <button id="confirmFontPicker" class="picker-button">확인</button>
+    </div>
+    <div class="picker-container">
+      <!-- 가이드라인 위치 조정 -->
+      <div class="selection-guide"></div>
+      <div class="picker-wheel" id="fontPickerWheel">
+        <!-- 여기에 자바스크립트로 폰트 옵션들이 추가됩니다 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 팝업 모달 -->
+  <div id="welcomePopup" class="popup-overlay">
+    <div class="popup-content">
+      <p>해당 페이지는<br>서버에 사진을 보관하지 않습니다.<br> 안심하고 사용하세요.</p>
+      <button id="confirmBtn" class="popup-button">확인</button>
+    </div>
+  </div>
+
+  <div class="editor-container">
+    <label class="upload-button full-width">
+      이미지 선택
+      <input type="file" id="imageLoader" accept="image/*">
+    </label>
+    
+    <div class="canvas-wrapper">
+      <canvas id="canvas"></canvas>
+    </div>
+    
+    <div class="controls">
+      <input type="text" id="textInput" placeholder="텍스트 입력">
+      
+      <button id="addTextBtn">텍스트 추가</button>
+
+      <div class="row">
+        <label>글꼴
+          <select id="fontFamily">
+          </select>
+        </label>
+
+        <label>크기
+          <input type="range" id="fontSize" min="10" max="200" value="36">
+        </label>
+      </div>
+
+      <div class="row">
+        <label>색상 <input type="color" id="fontColor" value="#ffffff"></label>
+        <label>불투명도 <input type="range" id="opacity" min="0" max="1" step="0.1" value="1"></label>
+      </div>
+      
+      <div class="row">
+        <label>자간 <input type="range" id="letterSpacing" min="-5" max="20" step="0.5" value="0"></label>
+      </div>
+
+      <div class="row">
+        <label>회전 <input type="range" id="rotation" min="-180" max="180" value="0" step="1"> °</label>
+        <label>방향
+          <select id="textDirection">
+            <option value="horizontal">가로</option>
+            <option value="vertical">세로</option>
+          </select>
+        </label>
+        <label>정렬
+          <button id="centerTextBtn" class="small-button">중앙</button>
+        </label>
+      </div>
+
+      <button id="deleteTextBtn">선택된 텍스트 삭제</button>
+      <button id="saveImageBtn">이미지 저장</button>
+      <button id="shareImageBtn">이미지 공유</button>
+    </div>
+  </div>
+
+  <!-- 텍스트 편집용 모달 컨트롤 -->
+  <div id="textControlModal" class="text-control-modal hidden">
+    <div class="modal-content">
+      <div class="row">
+        <label>글꼴
+          <div id="modalFontSelector" class="font-selector">
+            <span id="modalFontDisplay"></span>
+            <input type="hidden" id="modalFontFamily">
+            <span class="selector-arrow">▼</span>
+          </div>
+        </label>
+      </div>
+      <div class="row">
+        <label>색상 <input type="color" id="modalFontColor"></label>
+      </div>
+      <div class="row">
+        <label>크기 <input type="range" id="modalFontSize" min="10" max="200"></label>
+        <label>불투명도 <input type="range" id="modalOpacity" min="0" max="1" step="0.1" value="1"></label>
+      </div>
+      <div class="row">
+        <label>자간 <input type="range" id="modalLetterSpacing" min="-5" max="20" step="0.5" value="0"></label>
+        <label>회전 <input type="range" id="modalRotation" min="-180" max="180" value="0" step="1" style="width:100px;"></label>
+      </div>
+      <div class="row">
+        <label>방향
+          <select id="modalTextDirection">
+            <option value="horizontal">가로</option>
+            <option value="vertical">세로</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>정렬 <button id="modalCenterBtn" class="small-button">중앙</button></label>
+      </div>
+      <div class="row">
+        <button id="modalDeleteBtn" class="small-button">삭제</button>
+        <button id="modalCloseBtn" class="small-button">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 페이블리 정보 푸터 -->
+  <footer class="fablely-footer">
+    <div class="footer-links">
+      <a href="https://smartstore.naver.com/fablely" target="_blank" class="footer-button">
+        <img src="https://img.icons8.com/color/48/000000/shop.png" alt="스토어" width="24" height="24">
+        페이블리 스토어 바로가기
+      </a>
+      <a href="http://pf.kakao.com/_xhPKeK/chat" target="_blank" class="footer-button">
+        <img src="https://img.icons8.com/?size=100&id=BH0XTdh770dG&format=png&color=000000" alt="카카오톡" width="24" height="24">
+        페이블리 카카오톡채널 바로가기
+      </a>
+    </div>
+    <p class="copyright">본 페이지는 페이블리ⓒ 에서 제작되었습니다.</p>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
